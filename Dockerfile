@@ -4,8 +4,8 @@ WORKDIR /build
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 RUN chmod +x mvnw
-
 COPY src/ src/
+# Build in-container (may download dependencies). Use --build to refresh.
 RUN ./mvnw -q -DskipTests package && cp target/smart-rate-limiter-0.0.1-SNAPSHOT.jar app.jar
 
 FROM eclipse-temurin:17-jre-alpine

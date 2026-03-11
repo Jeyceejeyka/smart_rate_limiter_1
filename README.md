@@ -210,6 +210,8 @@ docker run -d -p 6379:6379 redis
 2 Run Spring Boot App
 mvn spring-boot:run
 
+By default, the app connects to Redis at `localhost:6379`. In Docker, set `SPRING_DATA_REDIS_HOST=redis`.
+
 
 Application runs on:
 
@@ -235,6 +237,24 @@ docker compose up --build
 Stop:
 
 docker compose down
+
+Frontend Dashboard
+
+A dedicated frontend dashboard now lives in:
+
+frontend/
+
+When running Docker Compose, the frontend is exposed on:
+
+http://localhost:3000
+
+The dashboard proxies API calls to the backend service (`app:8081`) and supports:
+
+- client login/JWT generation
+- client creation
+- rate-limit request testing (single + burst)
+- request history and counters
+- health status views
 
 Health Check
 GET /actuator/health

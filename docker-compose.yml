@@ -19,7 +19,21 @@ services:
       redis:
         condition: service_healthy
     environment:
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: "6379"
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
     ports:
       - "8081:8081"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smart-rate-limiter-frontend
+    depends_on:
+      app:
+        condition: service_started
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: /api/proxy
+      BACKEND_INTERNAL_URL: http://app:8081
+    ports:
+      - "3000:3000"
