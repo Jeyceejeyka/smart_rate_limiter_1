@@ -1,33 +1,31 @@
-Smart Rate Limiter
+# Smart Rate Limiter
 
-A distributed rate limiting service built using Spring Boot and Redis.
+A distributed rate limiting service built using **Spring Boot** and **Redis**.
+
 This project demonstrates backend system design concepts such as rate limiting algorithms, JWT authentication, role-based request limits, and containerized deployment using Docker.
 
 The system controls how many requests a client can make within a time window and prevents API abuse.
 
-Features
+---
 
-Distributed rate limiting using Redis
+## Features
 
-Sliding window style request control
+* Distributed rate limiting using Redis
+* Sliding window style request control
+* JWT authentication for clients
+* Role-based rate limits (FREE vs PREMIUM)
+* Clean layered architecture
+* Global exception handling
+* Request tracking using correlation IDs
+* Dockerized deployment
+* Health monitoring with Spring Boot Actuator
+* Integration tests
 
-JWT authentication for clients
+---
 
-Role-based rate limits (FREE vs PREMIUM)
+## Architecture Overview
 
-Clean layered architecture
-
-Global exception handling
-
-Request tracking using correlation IDs
-
-Dockerized deployment
-
-Health monitoring with Spring Boot Actuator
-
-Integration tests
-
-Architecture Overview
+```
 Client Request
       │
       ▼
@@ -41,7 +39,7 @@ RedisRateLimitService
       │
       ▼
 Redis (stores request counts with expiration)
-
+```
 
 Each client has a rate limit based on their role.
 
@@ -49,43 +47,42 @@ Requests are counted in Redis using atomic operations with expiration.
 
 If the limit is exceeded, the request is rejected.
 
-Tech Stack
+---
 
-Backend
+## Tech Stack
 
-Java 17
+### Backend
 
-Spring Boot
+* Java 17
+* Spring Boot
+* Spring Web
+* Spring Data JPA
+* Spring Data Redis
 
-Spring Web
+### Storage
 
-Spring Data JPA
+* H2 Database (client data)
+* Redis (rate limiting)
 
-Spring Data Redis
+### Security
 
-Storage
+* JWT authentication
 
-H2 Database (client data)
+### Testing
 
-Redis (rate limiting)
+* Spring Boot Test
+* MockMvc integration tests
 
-Security
+### DevOps
 
-JWT authentication
+* Docker
+* Docker Compose
 
-Testing
+---
 
-Spring Boot Test
+## Project Structure
 
-MockMvc integration tests
-
-DevOps
-
-Docker
-
-Docker Compose
-
-Project Structure
+```
 src/main/java/com/example/ratelimiter
 
 config
@@ -123,199 +120,258 @@ service
 
 util
  └ RequestIdFilter.java
+```
 
-How Rate Limiting Works
+---
+
+## How Rate Limiting Works
 
 Each client has:
 
-a base request limit
-
-a role
+* a base request limit
+* a role
 
 Roles determine how much traffic is allowed.
 
-Example:
+### Example
 
-Role	Limit
-FREE	baseLimit
-PREMIUM	baseLimit × 3
+| Role    | Limit         |
+| ------- | ------------- |
+| FREE    | baseLimit     |
+| PREMIUM | baseLimit × 3 |
 
 Redis stores request counters using:
 
+```
 rate_limit:<clientName>
-
+```
 
 The counter automatically resets after the window expires.
 
-API Endpoints
-Create Client
+---
 
-POST /clients
+## API Endpoints
 
-Example request:
+### Create Client
 
+**POST** `/clients`
+
+#### Request
+
+```json
 {
   "name": "clientA",
   "baseLimit": 5,
   "role": "FREE"
 }
+```
 
+#### Response
 
-Response:
-
+```json
 {
   "name": "clientA",
   "baseLimit": 5,
   "role": "FREE"
 }
+```
 
-Login (Generate JWT)
+---
 
-POST /auth/login?name=clientA
+### Login (Generate JWT)
 
-Response:
+**POST** `/auth/login?name=clientA`
 
+#### Response
+
+```
 <jwt_token>
+```
 
-Check Rate Limit
+---
 
-GET /rate-limit
+### Check Rate Limit
 
-Header:
+**GET** `/rate-limit`
 
+#### Header
+
+```
 Authorization: Bearer <token>
+```
 
+#### Responses
 
-Example response:
+**Allowed**
 
-Allowed:
-
+```json
 {
   "allowed": true,
   "message": "Request allowed"
 }
+```
 
+**Blocked**
 
-Blocked:
-
+```json
 {
   "allowed": false,
   "message": "Rate limit exceeded"
 }
+```
 
-Running Locally
-1 Start Redis
+---
+
+## Running Locally
+
+### 1. Start Redis
+
+```bash
 docker run -d -p 6379:6379 redis
+```
 
-2 Run Spring Boot App
+### 2. Run Spring Boot App
+
+```bash
 mvn spring-boot:run
+```
 
-By default, the app connects to Redis at `localhost:6379`. In Docker, set `SPRING_DATA_REDIS_HOST=redis`.
+By default, the app connects to Redis at `localhost:6379`.
 
+In Docker, set:
+
+```
+SPRING_DATA_REDIS_HOST=redis
+```
 
 Application runs on:
 
+```
 http://localhost:8081
+```
 
-Run with Docker
-Build the project
+---
+
+## Run with Docker
+
+### Build the project
+
+```bash
 mvn clean package
+```
 
-Build Docker image
+### Build Docker image
+
+```bash
 docker build -t smart-rate-limiter .
+```
 
-Run container
+### Run container
+
+```bash
 docker run -p 8081:8081 smart-rate-limiter
+```
 
-Run with Docker Compose (Recommended)
+---
 
-Start Redis + App together:
+## Run with Docker Compose (Recommended)
 
+### Start Redis + App together
+
+```bash
 docker compose up --build
+```
 
+### Stop
 
-Stop:
-
+```bash
 docker compose down
+```
 
-Frontend Dashboard
+---
 
-A dedicated frontend dashboard now lives in:
+## Frontend Dashboard
 
+A dedicated frontend dashboard lives in:
+
+```
 frontend/
+```
 
 When running Docker Compose, the frontend is exposed on:
 
+```
 http://localhost:3000
+```
 
 The dashboard proxies API calls to the backend service (`app:8081`) and supports:
 
-- client login/JWT generation
-- client creation
-- rate-limit request testing (single + burst)
-- request history and counters
-- health status views
+* client login / JWT generation
+* client creation
+* rate-limit request testing (single + burst)
+* request history and counters
+* health status views
 
-Health Check
-GET /actuator/health
+---
 
+## Health Check
 
-Example:
+**GET** `/actuator/health`
 
+#### Example
+
+```json
 {
   "status": "UP"
 }
+```
 
-Integration Tests
+---
+
+## Integration Tests
 
 Integration tests validate:
 
-client creation
+* client creation
+* JWT authentication
+* rate limit enforcement
 
-JWT authentication
+### Run tests
 
-rate limit enforcement
-
-Run tests:
-
+```bash
 mvn test
+```
 
-Future Improvements
+---
 
-Possible extensions:
+## Future Improvements
 
-Redis cluster support
+* Redis cluster support
+* Advanced sliding window using Redis sorted sets
+* API gateway integration
+* Prometheus monitoring
+* CI/CD pipeline
+* Load testing
 
-Advanced sliding window using Redis sorted sets
+---
 
-API gateway integration
+## What This Project Demonstrates
 
-Prometheus monitoring
+* Backend architecture
+* Distributed system constraints
+* API protection techniques
+* Stateless authentication
+* Containerized deployment
+* Clean code organization
 
-CI/CD pipeline
+---
 
-Load testing
-
-What This Project Demonstrates
-
-This project demonstrates knowledge of:
-
-Backend architecture
-
-Distributed system constraints
-
-API protection techniques
-
-Stateless authentication
-
-Containerized deployment
-
-Clean code organization
-
-Author
+## Author
 
 Backend project built for learning Spring Boot, distributed systems concepts, and API security.
 
-License
+---
+
+## License
 
 MIT License
