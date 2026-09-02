@@ -1,6 +1,22 @@
+# dependencies and build output
 node_modules
 .next
+out
 npm-debug.log*
+
+# Docker metadata
 Dockerfile*
+
+# Git metadata
 .git
 .gitignore
+
+# local env and secrets
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# editor metadata
+.vscode
+.DS_Store
