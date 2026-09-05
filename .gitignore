@@ -32,6 +32,15 @@ build/
 ### VS Code ###
 .vscode/
 
+# Secrets / environment files
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+!frontend/.env.local.example
+
 # Frontend
 frontend/node_modules/
 frontend/.next/
