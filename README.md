@@ -78,6 +78,16 @@ If the limit is exceeded, the request is rejected.
 * Docker
 * Docker Compose
 
+## Deployment
+
+The repository is split for deployment:
+
+* Deploy `frontend/` as a Next.js project on Vercel. Set the Vercel Root Directory to `frontend` and leave the Framework Preset as Next.js.
+* Deploy the root project on Render using the included `render.yaml`. It creates the Spring Boot API and a private Redis instance.
+* Set the Vercel environment variable `BACKEND_INTERNAL_URL` to the public URL of the Render API, for example `https://smart-rate-limiter-api.onrender.com`.
+
+Do not commit `.env`; use `.env.example` as the local configuration template. Render generates `JWT_SECRET` automatically through the blueprint.
+
 ---
 
 ## Project Structure
