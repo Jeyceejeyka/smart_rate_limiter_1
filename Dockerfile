@@ -10,6 +10,7 @@ RUN ./mvnw -q -DskipTests package && cp target/smart-rate-limiter-0.0.1-SNAPSHOT
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
+RUN apk add --no-cache wget
 
 COPY --from=build /build/app.jar ./app.jar
 
