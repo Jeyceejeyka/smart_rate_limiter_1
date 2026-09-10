@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 
 function backendBaseUrl(): string {
-  return process.env.BACKEND_INTERNAL_URL ?? process.env.BACKEND_API_URL ?? "http://localhost:8081";
+  const configured = process.env.BACKEND_INTERNAL_URL ?? process.env.BACKEND_API_URL;
+
+  if (configured) {
+    return configured;
+  }
+
+  const fallback = process.env.VERCEL
+    ? "https://smart-rate-limiter-1.onrender.com"
+    : "http://localhost:8081";
+
+  console.warn("[proxy] BACKEND_INTERNAL_URL is missing; using fallback backend URL", {
+    fallback,
+    isVercel: Boolean(process.env.VERCEL),
+  });
+
+  return fallback;
 }
 
 async function proxyRequest(request: NextRequest, path: string[]) {
