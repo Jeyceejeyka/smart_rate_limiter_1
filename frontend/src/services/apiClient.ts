@@ -33,33 +33,64 @@ export async function apiRequest<T>(
   init: RequestInit = {},
 ): Promise<ApiResult<T>> {
   const startedAt = performance.now();
+  const url = `${API_BASE_URL}${path}`;
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      Accept: "application/json, text/plain;q=0.9, */*;q=0.8",
-      ...(init.body ? { "Content-Type": "application/json" } : {}),
-      ...(init.headers ?? {}),
-    },
-    cache: "no-store",
+  console.debug("[apiRequest] starting request", {
+    url,
+    method: init.method ?? "GET",
+    headers: init.headers,
+    bodyPreview: typeof init.body === "string" ? init.body.slice(0, 200) : null,
   });
 
-  const latencyMs = Math.round(performance.now() - startedAt);
-  const rawBody = await response.text();
-  const parsedBody = parseBody(rawBody);
+  try {
+    const response = await fetch(url, {
+      ...init,
+      headers: {
+        Accept: "application/json, text/plain;q=0.9, */*;q=0.8",
+        ...(init.body ? { "Content-Type": "application/json" } : {}),
+        ...(init.headers ?? {}),
+      },
+      cache: "no-store",
+    });
 
-  if (!response.ok) {
-    const message =
-      typeof parsedBody === "object" && parsedBody !== null && "message" in parsedBody
-        ? String((parsedBody as { message?: string }).message)
-        : `Request failed with status ${response.status}`;
+    const latencyMs = Math.round(performance.now() - startedAt);
+    const rawBody = await response.text();
+    const parsedBody = parseBody(rawBody);
 
-    throw new ApiClientError(response.status, message, parsedBody);
+    console.debug("[apiRequest] response received", {
+      url,
+      status: response.status,
+      ok: response.ok,
+      latencyMs,
+      body: parsedBody,
+    });
+
+    if (!response.ok) {
+      const message =
+        typeof parsedBody === "object" && parsedBody !== null && "message" in parsedBody
+          ? String((parsedBody as { message?: string }).message)
+          : `Request failed with status ${response.status}`;
+
+      console.error("[apiRequest] request failed", {
+        url,
+        status: response.status,
+        message,
+        body: parsedBody,
+      });
+
+      throw new ApiClientError(response.status, message, parsedBody);
+    }
+
+    return {
+      data: parsedBody as T,
+      status: response.status,
+      latencyMs,
+    };
+  } catch (error) {
+    console.error("[apiRequest] unexpected fetch error", {
+      url,
+      error,
+    });
+    throw error;
   }
-
-  return {
-    data: parsedBody as T,
-    status: response.status,
-    latencyMs,
-  };
 }

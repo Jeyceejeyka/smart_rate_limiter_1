@@ -13,20 +13,48 @@ async function proxyRequest(request: NextRequest, path: string[]) {
   headers.delete("host");
   headers.delete("connection");
 
-  const response = await fetch(target, {
-    method: request.method,
-    headers,
-    body: request.method === "GET" || request.method === "HEAD" ? undefined : await request.text(),
-    cache: "no-store",
-  });
+  try {
+    console.debug("[proxy] forwarding request", {
+      target: target.toString(),
+      method: request.method,
+      path,
+    });
 
-  const responseHeaders = new Headers(response.headers);
-  responseHeaders.delete("content-encoding");
+    const response = await fetch(target, {
+      method: request.method,
+      headers,
+      body: request.method === "GET" || request.method === "HEAD" ? undefined : await request.text(),
+      cache: "no-store",
+    });
 
-  return new NextResponse(response.body, {
-    status: response.status,
-    headers: responseHeaders,
-  });
+    console.debug("[proxy] upstream response", {
+      target: target.toString(),
+      status: response.status,
+      statusText: response.statusText,
+    });
+
+    const responseHeaders = new Headers(response.headers);
+    responseHeaders.delete("content-encoding");
+
+    return new NextResponse(response.body, {
+      status: response.status,
+      headers: responseHeaders,
+    });
+  } catch (error) {
+    console.error("[proxy] upstream request failed", {
+      target: target.toString(),
+      method: request.method,
+      path,
+      error,
+    });
+    return NextResponse.json(
+      {
+        message: "Proxy request failed",
+        error: error instanceof Error ? error.message : String(error),
+      },
+      { status: 502 },
+    );
+  }
 }
 
 export async function GET(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {

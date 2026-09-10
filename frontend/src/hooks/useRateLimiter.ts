@@ -35,6 +35,7 @@ export function useRateLimiter() {
     },
     onError: (error) => {
       const normalized = normalizeError(error);
+      console.error("[frontend] login failed", { error, normalized });
       setError(`Login failed: ${normalized.message}`);
     },
   });
@@ -60,6 +61,7 @@ export function useRateLimiter() {
     },
     onError: (error) => {
       const normalized = normalizeError(error);
+      console.error("[frontend] create client failed", { error, normalized });
       setError(`Create client failed: ${normalized.message}`);
     },
   });
@@ -86,6 +88,11 @@ export function useRateLimiter() {
     onError: (error) => {
       const normalized = normalizeError(error);
       const apiError = error as ApiClientError;
+      console.error("[frontend] rate limit check failed", {
+        error,
+        normalized,
+        apiErrorData: apiError?.data,
+      });
       const message = `Rate limit call failed (${normalized.status}): ${normalized.message}`;
       setError(message);
       setLastRequest(
