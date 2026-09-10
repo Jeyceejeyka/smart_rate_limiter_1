@@ -6,6 +6,7 @@ export default function ErrorBanner({ message }: { message: string | null }) {
   return (
     <div className="panel error-panel" role="alert" aria-live="polite">
       <strong>Request Error:</strong> {message}
+      console.error(message);
     </div>
   );
 }
