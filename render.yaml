@@ -19,7 +19,7 @@ services:
           name: smart-rate-limiter-redis
           property: port
       - key: JWT_SECRET
-        generateValue: true
+        value: "A9Q9vcfAX28DjvsnBButuyFzUlrfAqboTayRBLz7qzA="
       - key: JWT_EXPIRATION
         value: "3600000"
       - key: SPRING_DATASOURCE_URL
