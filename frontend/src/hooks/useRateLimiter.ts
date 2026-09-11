@@ -43,7 +43,20 @@ export function useRateLimiter() {
   const createClientMutation = useMutation({
     mutationFn: async () => {
       const payload: ClientRequest = { name: clientName, baseLimit, role };
-      const result = await createClient(payload, token);
+      let result;
+
+      try {
+        result = await createClient(payload, token);
+      } catch (error) {
+        if (!(error instanceof ApiClientError) || error.status !== 401) {
+          throw error;
+        }
+
+        const refreshed = await loginClient(clientName);
+        setToken(refreshed.data);
+        result = await createClient(payload, refreshed.data);
+      }
+
       setError(null);
       pushHistory({
         endpoint: "/clients",
