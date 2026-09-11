@@ -62,6 +62,11 @@ export function useRateLimiter() {
     onError: (error) => {
       const normalized = normalizeError(error);
       console.error("[frontend] create client failed", { error, normalized });
+      if (normalized.status === 401) {
+        setToken("");
+        setError("Session expired. Login again to create the client.");
+        return;
+      }
       setError(`Create client failed: ${normalized.message}`);
     },
   });
@@ -93,7 +98,13 @@ export function useRateLimiter() {
         normalized,
         apiErrorData: apiError?.data,
       });
-      const message = `Rate limit call failed (${normalized.status}): ${normalized.message}`;
+      const sessionExpired = normalized.status === 401;
+      if (sessionExpired) {
+        setToken("");
+      }
+      const message = sessionExpired
+        ? "Session expired. Login again to send requests."
+        : `Rate limit call failed (${normalized.status}): ${normalized.message}`;
       setError(message);
       setLastRequest(
         { allowed: false, message: normalized.message } as RateLimitResponse,

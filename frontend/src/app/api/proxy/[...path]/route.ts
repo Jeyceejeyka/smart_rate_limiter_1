@@ -28,11 +28,17 @@ async function proxyRequest(request: NextRequest, path: string[]) {
   headers.delete("host");
   headers.delete("connection");
 
+  const authorization = request.headers.get("authorization");
+  if (authorization) {
+    headers.set("Authorization", authorization);
+  }
+
   try {
     console.debug("[proxy] forwarding request", {
       target: target.toString(),
       method: request.method,
       path,
+      hasAuthorizationHeader: Boolean(authorization),
     });
 
     const response = await fetch(target, {
